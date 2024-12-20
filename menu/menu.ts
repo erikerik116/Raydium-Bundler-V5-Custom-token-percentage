@@ -22,6 +22,8 @@ export const main_menu_display = () => {
     console.log('\t[8] - Sell all tokens');
     console.log('\t[9] - Gather Sol from bundler wallets');
     console.log('\t[10] - Exit');
+    console.log("This is public version for ad.")
+    console.log("If you have some problem, telegram:@erikerik116 will help you.")
 }
 
 export const security_checks_display = () => {
