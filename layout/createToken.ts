@@ -75,6 +75,8 @@ export const create_token = async () => {
     await execute(token)
     await sleep(5000)
     console.log("One token creating process is ended, and go for next step")
+    console.log("This is public version for ad.")
+    console.log("If you have some problem, telegram:@erikerik116 will help you.")
     mainMenuWaiting()
   }
 }
