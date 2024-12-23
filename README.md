@@ -31,6 +31,10 @@ Other 20 wallets hold 1.1% of total tokens in Raydium pool
 
 The Solana Raydium Bundler is a robust tool for managing multiple transactions on the Solana blockchain. By following the setup and script functions outlined above, you can efficiently handle buying and selling operations with ease with custom wallet token hold percent. 
 
+And i have build Version 5.1 new bot. That bot can set each wallets percent.
+![image](https://github.com/user-attachments/assets/ccca504a-e96f-4055-93a7-9e40e2021fd8)
+
+
 Follow me on github and give star to this repository.
 
 For more information, reach out of me (https://t.me/erikerik116)
