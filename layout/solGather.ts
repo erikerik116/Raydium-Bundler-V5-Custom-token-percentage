@@ -1,13 +1,16 @@
 import { ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { mainMenuWaiting, outputBalance, readBundlerWallets, readJson, saveBundlerWalletsToFile, sleep } from "../src/utils";
 import { cluster, connection } from "../config";
-import { bundlerWalletName, bundleWalletNum, needNewWallets, swapSolAmount } from "../settings"
+import { bundlerWalletName, bundleWalletNum, needNewWallets } from "../settings"
 import bs58 from 'bs58'
 import { screen_clear } from "../menu/menu";
 import { execute } from "../src/legacy";
 import { createCloseAccountInstruction, getAssociatedTokenAddress, NATIVE_MINT } from "@solana/spl-token";
+import { calcWalletSol } from "./walletCreate";
 
 const walletNum = bundleWalletNum
+let swapSolAmount = calcWalletSol();
+
 
 export const sol_gather = async () => {
     screen_clear()
@@ -20,8 +23,9 @@ export const sol_gather = async () => {
     const data = readJson()
     const LP_wallet_keypair = Keypair.fromSecretKey(bs58.decode(data.mainKp!))
     const batchLength = 5
-    const batchNum = Math.ceil(bundleWalletNum / batchLength)
+    const batchNum = Math.ceil((bundleWalletNum - 1) / batchLength)
     let successNum = 0
+
 
     try {
         for (let i = 0; i < batchNum; i++) {
@@ -31,22 +35,24 @@ export const sol_gather = async () => {
                 ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 250_000 })
             )
             for (let j = 0; j < batchLength; j++) {
-                let solAmount = await connection.getBalance(walletKPs[i * batchLength + j].publicKey)
+
+                let solAmount = await connection.getBalance(walletKPs[i * batchLength + j + 1].publicKey)
                 const quoteAta = await getAssociatedTokenAddress(NATIVE_MINT, walletKPs[i * batchLength + j].publicKey)
                 if ((i * batchLength + j) >= bundleWalletNum) continue;
                 sendSolTx.push(
                     createCloseAccountInstruction(
                         quoteAta,
-                        walletKPs[i * batchLength + j].publicKey,
-                        walletKPs[i * batchLength + j].publicKey
+                        walletKPs[i * batchLength + j + 1].publicKey,
+                        walletKPs[i * batchLength + j + 1].publicKey
                     ),
                     SystemProgram.transfer({
-                        fromPubkey: walletKPs[i * batchLength + j].publicKey,
+                        fromPubkey: walletKPs[i * batchLength + j + 1].publicKey,
                         toPubkey: LP_wallet_keypair.publicKey,
                         lamports: solAmount
                         //  - 0.00001 * LAMPORTS_PER_SOL
                     })
                 )
+
             }
             let index = 0
             while (true) {
@@ -66,7 +72,7 @@ export const sol_gather = async () => {
                         instructions: sendSolTx,
                     }).compileToV0Message()
                     const transaction = new VersionedTransaction(messageV0)
-                    const signers = walletKPs.slice(i * batchLength, bundleWalletNum > (i + 1) * batchLength ? (i + 1) * batchLength : bundleWalletNum)
+                    const signers = walletKPs.slice(i * batchLength + 1, bundleWalletNum > (i + 1) * batchLength ? ((i + 1) * batchLength + 1) : bundleWalletNum)
                     transaction.sign(signers)
                     transaction.sign([LP_wallet_keypair])
                     console.log(await connection.simulateTransaction(transaction))
